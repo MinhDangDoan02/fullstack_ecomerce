@@ -1,0 +1,167 @@
+
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./src/generated/client"
+}
+
+datasource db {
+  provider = "mysql"
+  url = env("DATABASE_URL")
+}
+
+model User {
+  id Int  @id @default(autoincrement())
+  name String 
+  email String  @unique
+  password String
+  phone String
+  address String
+  id_country Int
+  avatar String?
+  level Int @default(0)
+
+  order Order[]
+  cart Cart[]
+  ratings BlogRate[]
+  products Product[]
+  wishlists ProductWishlist[]
+  comments BlogComment[]
+
+}
+model Blog {
+  id Int @id @default(autoincrement())
+  title String
+  image String
+  description String?
+  content String?
+
+  ratings BlogRate[]
+  comments BlogComment[]
+}
+
+model BlogRate {
+  id Int @id @default(autoincrement())
+  blog_id Int
+  user_id Int
+  rate Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  blog Blog @relation(fields: [blog_id], references: [id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([blog_id, user_id])
+}
+
+model BlogComment {
+  id Int @id @default(autoincrement())
+  blog_id Int
+  user_id Int
+  comment String
+  image_user String?
+  name_user String?
+  id_comment Int @default(0)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  blog Blog @relation(fields: [blog_id], references: [id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([blog_id])
+}
+model Country {
+  id Int @id @default(autoincrement())
+  name String
+
+   
+}
+model Product {
+  id Int @id @default(autoincrement())
+  name String
+  price Float
+  id_category Int
+  stock Int  
+  image String
+  detail String   
+  id_user Int?
+  isDeleted Boolean @default(false)
+
+  user User? @relation(fields: [id_user], references: [id])
+  cart Cart[]
+  orderItem OrderItem[]
+  wishlists ProductWishlist[]
+
+ category Category @relation(fields: [id_category], references: [id] )
+}
+model Category {
+  id Int @id @default(autoincrement())
+  name String
+  parentCategoryId  Int?      // Hỗ trợ danh mục con
+  
+  product Product[]
+}
+
+model ProductWishlist {
+  id Int @id @default(autoincrement())
+  userId Int
+  productId Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+}
+
+model Cart {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  productId   Int
+  quantity Int
+  priceAtAdd  Float
+  totalAmount Float ?
+  total Float ?
+
+  user        User     @relation(fields: [userId], references: [id])
+  product     Product  @relation(fields: [productId], references: [id])
+}
+
+model Order {
+
+  id              Int         @id @default(autoincrement())
+
+  userId          Int
+  user            User        @relation(fields: [userId], references: [id])
+
+
+  totalAmount     Float       // Tổng tiền hàng
+  shippingFee     Float       @default(0)
+  discountAmount  Float       @default(0)
+  finalAmount     Float       // Tổng tiền phải trả
+
+  // Thông tin nhận hàng
+  fullName        String
+  phone           String
+  address         String
+  id_country        Int
+  note            String?
+
+  orderItems      OrderItem[]
+  
+}
+model OrderItem {
+  id            Int     @id @default(autoincrement())
+
+  orderId       Int
+  productId     Int
+
+  productName   String
+  price         Float     // Giá lúc mua
+  quantity      Int
+  subtotal      Float
+
+  order         Order     @relation(fields: [orderId], references: [id])
+  product       Product   @relation(fields: [productId], references: [id])
+}
+

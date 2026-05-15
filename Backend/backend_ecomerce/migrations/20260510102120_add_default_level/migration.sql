@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `user` MODIFY `level` INTEGER NOT NULL DEFAULT 0;
